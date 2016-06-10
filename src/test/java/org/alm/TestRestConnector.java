@@ -16,7 +16,7 @@ public class TestRestConnector
     }
     
     @Test
-    public void accessors()
+    public void accessors() throws Exception
     {
         RestConnector connector = RestConnector.instance();
         
@@ -24,5 +24,9 @@ public class TestRestConnector
         Assert.assertEquals(connector.port(), Port);
         Assert.assertEquals(connector.domain(), Domain);
         Assert.assertEquals(connector.project(), Project);
+        
+        Assert.assertEquals(
+                connector.buildUrl("api/users"), 
+                String.format("http://%s:%s/api/users", Host, Port));
     }    
 }
