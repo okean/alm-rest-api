@@ -38,7 +38,7 @@ public class TestRestConnector
         RestConnector.instance().init(Host, Port, Domain, Project);
     }
     
-    @XmlRootElement(name = "TestEntity")
+    @XmlRootElement()
     public static class Entity
     {
         private String name;
