@@ -86,23 +86,48 @@ public class RestConnector
         throw new Exception("Host/Port are invalid. Call init() to initialize them properly.");
     }    
          
-    public <T> T get(String path, Class<T> entityType, MultivaluedMap<String, Object> headers, Map<String, String> queryParams) throws Exception
+    public <T> T get(
+            String path,
+            Class<T> entityType,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams) throws Exception
     {
+        Log.debug("GET: {}", path);
+        
         return call(HttpMethod.GET, path, headers, queryParams, null, entityType);
     }
     
-    public Response post(String path, MultivaluedMap<String, Object> headers, Map<String, String> queryParams, Object payload) throws Exception
+    public <T> T post(
+            String path,
+            Class<T> entityType,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
+            Object payload) throws Exception
     {
-        return call(HttpMethod.POST, path, headers, queryParams, payload);
+        Log.debug("POST: {}", path);
+        
+        return call(HttpMethod.POST, path, headers, queryParams, payload, entityType);
     }
     
-    public Response put(String path, MultivaluedMap<String, Object> headers, Map<String, String> queryParams, Object payload) throws Exception
+    public <T> T put(
+            String path,
+            Class<T> entityType,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
+            Object payload) throws Exception
     {
-        return call(HttpMethod.PUT, path, headers, queryParams, payload);
+        Log.debug("PUT: {}", path);
+        
+        return call(HttpMethod.PUT, path, headers, queryParams, payload, entityType);
     }
     
-    public Response delete(String path, MultivaluedMap<String, Object> headers, Map<String, String> queryParams) throws Exception
+    public Response delete(
+            String path,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams) throws Exception
     {
+        Log.debug("DELETE: {}", path);
+        
         return call(HttpMethod.DELETE, path, headers, queryParams, null);
     }      
     
@@ -137,13 +162,13 @@ public class RestConnector
     
     private <T> T call(
             String methodName, 
-            String restPath, 
+            String path, 
             MultivaluedMap<String, Object> headers, 
             Map<String, String> queryParams, 
             Object payload,
             Class<T> entityType) throws Exception
             {
-                Response res = call(methodName, restPath, headers, queryParams, payload);
+                Response res = call(methodName, path, headers, queryParams, payload);
                 
                 if(!res.hasEntity())
                 {
@@ -194,5 +219,4 @@ public class RestConnector
             cookies.putAll(newCookies);
         }        
     }
-
 }
