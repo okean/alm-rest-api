@@ -1,8 +1,8 @@
 package org.alm;
 
-public final class AlmClient
+public final class Dao
 {
-    private AlmClient()
+    private Dao()
     {
     }
     
