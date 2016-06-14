@@ -26,28 +26,28 @@ import org.slf4j.LoggerFactory;
 public class RestConnector
 {
     private final static Logger Log = LoggerFactory.getLogger(RestConnector.class);
-    
+
     private String host;
     private String port;
     private String domain;
     private String project;
-    
+
     private Map<String, Cookie> cookies;
-    
+
     private RestConnector()
     {
     }
-    
+
     private static class RestConnectorHolder
     {
-        static final RestConnector Instance = new RestConnector(); 
+        static final RestConnector Instance = new RestConnector();
     }
-    
+
     public static RestConnector instance()
     {
         return RestConnectorHolder.Instance;
     }
-    
+
     public void init(String host, String port, String domain, String project)
     {
         this.host = host;
@@ -55,12 +55,12 @@ public class RestConnector
         this.domain = domain;
         this.project = project;
     }
-   
+
     public String host()
     {
         return host;
     }
-    
+
     public String port()
     {
         return port;
@@ -69,23 +69,40 @@ public class RestConnector
     public String domain()
     {
         return domain;
-    }    
-    
+    }
+
     public String project()
     {
         return project;
     }
-        
+
     public String buildUrl(String path) throws Exception
     {
         if(StringUtils.isNotBlank(host) && StringUtils.isNotBlank(port))
         {
-            return String.format("http://%s:%s/%s", host, port, path);   
+            path = path.startsWith("/") ? path.substring(1) : path;
+
+            return String.format("http://%s:%s/%s", host, port, path);
         }
-        
+
         throw new Exception("Host/Port are invalid. Call init() to initialize them properly.");
-    }    
-         
+    }
+
+    public String buildEntityCollectionUrl(String entityType) throws Exception
+    {
+        if(StringUtils.isNotBlank(domain) && StringUtils.isNotBlank(project))
+        {
+            return String.format("/qcbin/rest/domains/%s/projects/%s/%ss", domain, project, entityType);
+        }
+
+        throw new Exception("Domain/Project are invalid. Call init() to initialize them properly.");
+    }
+
+    public String buildEntityUrl(String entityType, String id) throws Exception
+    {
+        return buildEntityCollectionUrl(entityType) + "/" + id;
+    }
+
     public <T> T get(
             String path,
             Class<T> entityType,
@@ -93,10 +110,10 @@ public class RestConnector
             Map<String, String> queryParams) throws Exception
     {
         Log.debug("GET: {}", path);
-        
+
         return call(HttpMethod.GET, path, headers, queryParams, null, entityType);
     }
-    
+
     public <T> T post(
             String path,
             Class<T> entityType,
@@ -105,10 +122,10 @@ public class RestConnector
             Object payload) throws Exception
     {
         Log.debug("POST: {}", path);
-        
+
         return call(HttpMethod.POST, path, headers, queryParams, payload, entityType);
     }
-    
+
     public <T> T put(
             String path,
             Class<T> entityType,
@@ -117,29 +134,29 @@ public class RestConnector
             Object payload) throws Exception
     {
         Log.debug("PUT: {}", path);
-        
+
         return call(HttpMethod.PUT, path, headers, queryParams, payload, entityType);
     }
-    
+
     public Response delete(
             String path,
             MultivaluedMap<String, Object> headers,
             Map<String, String> queryParams) throws Exception
     {
         Log.debug("DELETE: {}", path);
-        
+
         return call(HttpMethod.DELETE, path, headers, queryParams, null);
-    }      
-    
+    }
+
     private static WebTarget createWebTarget(String uri, Map<String, String> queryParams) throws URISyntaxException
     {
         WebTarget webTarget = null;
-        
+
         URI u = new URI(uri);
         Client client = ClientBuilder.newClient();
-        
+
         webTarget = client.target(u);
-        
+
         if (MapUtils.isNotEmpty(queryParams))
         {
             for (Entry<String, String> entry : queryParams.entrySet())
@@ -153,42 +170,42 @@ public class RestConnector
 
         return webTarget;
     }
-    
+
     private static boolean isStatusCodeOK(int statusCode)
     {
-        return statusCode >= Status.OK.getStatusCode() && 
+        return statusCode >= Status.OK.getStatusCode() &&
                statusCode <= Status.PARTIAL_CONTENT.getStatusCode();
     }
-    
+
     private <T> T call(
-            String methodName, 
-            String path, 
-            MultivaluedMap<String, Object> headers, 
-            Map<String, String> queryParams, 
+            String methodName,
+            String path,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
             Object payload,
             Class<T> entityType) throws Exception
             {
                 Response res = call(methodName, path, headers, queryParams, payload);
-                
+
                 if(!res.hasEntity())
                 {
                     return null;
                 }
-                
+
                 return (T) res.readEntity(entityType);
             }
-    
+
     private Response call(
-            String methodName, 
-            String path, 
-            MultivaluedMap<String, Object> headers, 
-            Map<String, String> queryParams, 
+            String methodName,
+            String path,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
             Object payload) throws Exception
     {
         WebTarget webTarget = createWebTarget(buildUrl(path), queryParams);
-        
+
         Builder result = webTarget.request().headers(headers);
-        
+
         if (MapUtils.isNotEmpty(cookies))
         {
             for (Entry<String, Cookie> cookie : cookies.entrySet())
@@ -196,27 +213,27 @@ public class RestConnector
                 result = result.cookie(cookie.getValue());
             }
         }
-        
+
         Response res = result.method(
                 methodName, Entity.entity(payload, MediaType.APPLICATION_XML), Response.class);
-        
+
         int statusCode = res.getStatus();
-        
+
         if(!isStatusCodeOK(statusCode))
-        {   
-            throw new ResponseException(res, path);
+        {
+            throw new ResponseException(res, buildUrl(path));
         }
-        
+
         updateCookies(res.getCookies());
-        
+
         return res;
     }
-    
+
     private void updateCookies(Map<String, NewCookie> newCookies)
     {
         if (MapUtils.isNotEmpty(newCookies))
         {
             cookies.putAll(newCookies);
-        }        
+        }
     }
 }
