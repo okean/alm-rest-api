@@ -2,6 +2,7 @@ package org.alm;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -12,12 +13,15 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -32,7 +36,7 @@ public class RestConnector
     private String domain;
     private String project;
 
-    private Map<String, Cookie> cookies;
+    private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
 
     private RestConnector()
     {
@@ -54,6 +58,17 @@ public class RestConnector
         this.port = port;
         this.domain = domain;
         this.project = project;
+    }
+
+    public static MultivaluedMap<String, Object> createBasicAuthHeader(String username, String password)
+    {
+        byte[] credBytes = (username + ":" + password).getBytes();
+        String credEncodedString = "Basic " + Base64.encodeBase64String(credBytes);
+
+        MultivaluedMap<String, Object> authHeader = new MultivaluedHashMap<String, Object>();
+        authHeader.add(HttpHeaders.AUTHORIZATION, credEncodedString);
+
+        return authHeader;
     }
 
     public String host()

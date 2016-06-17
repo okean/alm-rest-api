@@ -1,5 +1,7 @@
 package org.alm;
 
+import java.net.URI;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -47,6 +49,24 @@ public final class Dao
             }
 
             throw new Exception("Invalid authentication point");
+        }
+    }
+
+    public static void login(String authenticationPoint, String username, String password) throws Exception
+    {
+        RestConnector.instance().get(
+                authenticationPoint, Response.class, RestConnector.createBasicAuthHeader(username, password), null);
+    }
+
+    public static void login(String username, String password) throws Exception
+    {
+        String authenticationPoint = isAuthenticated();
+
+        if (authenticationPoint != null)
+        {
+            URI uri = new URI(authenticationPoint);
+
+            login(uri.getPath(), username, password);
         }
     }
 }
