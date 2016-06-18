@@ -3,8 +3,13 @@
   <groupId>alm-rest-api</groupId>
   <artifactId>alm-rest-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <build>
 
+  <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <build>
     <sourceDirectory>src/java</sourceDirectory>
     <testSourceDirectory>src/test/java</testSourceDirectory>
 
@@ -21,9 +26,18 @@
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>
-        <version>2.0.0</version>
+        <version>4.2.0</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.7</version>
         <configuration>
-            <branch>master</branch>
+            <format>xml</format>
+            <maxmem>256m</maxmem>
+            <!-- aggregated reports for multi-module projects -->
+            <aggregate>true</aggregate>
         </configuration>
       </plugin>
     </plugins>
