@@ -234,7 +234,7 @@ public class RestConnector
 
         int statusCode = res.getStatus();
 
-        if(!isStatusCodeOK(statusCode))
+        if (!isStatusCodeOK(statusCode))
         {
             throw new ResponseException(res, buildUrl(path));
         }

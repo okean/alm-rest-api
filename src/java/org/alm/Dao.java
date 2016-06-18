@@ -14,11 +14,10 @@ public final class Dao
     {
     }
 
-    public static boolean isLoggedIn(String username, String password)
-    {
-        return false;
-    }
-
+    /**
+     * @return null if authenticated.<br> a url to authenticate against if not authenticated.
+     * @throws Exception
+     */
     public static String isAuthenticated() throws Exception
     {
         String isAuthenticatedUrl = "qcbin/rest/is-authenticated";
@@ -52,12 +51,28 @@ public final class Dao
         }
     }
 
+    /**
+     * Client sends a valid Basic Authorization header to the authentication point
+     * and server set cookies on client.
+     *
+     * @param authenticationPoint to authenticate at
+     * @param username
+     * @param password
+     * @throws Exception
+     */
     public static void login(String authenticationPoint, String username, String password) throws Exception
     {
         RestConnector.instance().get(
                 authenticationPoint, Response.class, RestConnector.createBasicAuthHeader(username, password), null);
     }
 
+    /**
+     * Make a call to is-authenticated resource to obtain authenticationPoint and do login.
+     *
+     * @param username
+     * @param password
+     * @throws Exception
+     */
     public static void login(String username, String password) throws Exception
     {
         String authenticationPoint = isAuthenticated();
@@ -68,5 +83,17 @@ public final class Dao
 
             login(uri.getPath(), username, password);
         }
+    }
+
+    /**
+     * Close session on server and clean session cookies on client
+     *
+     * @throws Exception
+     */
+    public static void logout() throws Exception
+    {
+        String logoutUrl = "qcbin/authentication-point/logout";
+
+        RestConnector.instance().get(logoutUrl, Response.class, null, null);
     }
 }

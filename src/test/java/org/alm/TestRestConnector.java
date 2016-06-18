@@ -38,75 +38,6 @@ public class TestRestConnector
         RestConnector.instance().init(Host, Port, Domain, Project);
     }
 
-    @XmlRootElement()
-    private static class Entity
-    {
-        private String name;
-        private String type;
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public void setName(String name)
-        {
-            this.name = name;
-        }
-
-        public String getType()
-        {
-            return type;
-        }
-
-        public void setType(String type)
-        {
-            this.type = type;
-        }
-    }
-
-    @Path("/")
-    public static class Resource
-    {
-        @GET
-        @Produces("text/plain")
-        public String get(@QueryParam("name") String name, @QueryParam("type") String type)
-        {
-            return String.format("GET name=%s; type=%s", name, type);
-        }
-
-        @GET
-        @Path("/entity")
-        @Produces("application/xml")
-        public Entity getEntity()
-        {
-            Entity entity = new Entity();
-            entity.setName("user");
-            entity.setType("delegate");
-
-            return entity;
-        }
-
-        @POST
-        @Produces("text/plain")
-        public String post(Entity entity)
-        {
-            return String.format("POST name=%s; type=%s", entity.getName(), entity.getType());
-        }
-
-        @PUT
-        @Produces("text/plain")
-        public String put(Entity entity)
-        {
-            return String.format("PUT name=%s; type=%s", entity.getName(), entity.getType());
-        }
-
-        @DELETE
-        public void delete()
-        {
-        }
-    }
-
     @BeforeClass
     public void setUp() throws Exception
     {
@@ -201,5 +132,74 @@ public class TestRestConnector
         Response delete = RestConnector.instance().delete("api/", null, null);
 
         Assert.assertEquals(delete.getStatus(), Status.NO_CONTENT.getStatusCode());
+    }
+
+    @Path("/")
+    public static class Resource
+    {
+        @GET
+        @Produces("text/plain")
+        public String get(@QueryParam("name") String name, @QueryParam("type") String type)
+        {
+            return String.format("GET name=%s; type=%s", name, type);
+        }
+
+        @GET
+        @Path("/entity")
+        @Produces("application/xml")
+        public Entity getEntity()
+        {
+            Entity entity = new Entity();
+            entity.setName("user");
+            entity.setType("delegate");
+
+            return entity;
+        }
+
+        @POST
+        @Produces("text/plain")
+        public String post(Entity entity)
+        {
+            return String.format("POST name=%s; type=%s", entity.getName(), entity.getType());
+        }
+
+        @PUT
+        @Produces("text/plain")
+        public String put(Entity entity)
+        {
+            return String.format("PUT name=%s; type=%s", entity.getName(), entity.getType());
+        }
+
+        @DELETE
+        public void delete()
+        {
+        }
+    }
+
+    @XmlRootElement()
+    private static class Entity
+    {
+        private String name;
+        private String type;
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public void setName(String name)
+        {
+            this.name = name;
+        }
+
+        public String getType()
+        {
+            return type;
+        }
+
+        public void setType(String type)
+        {
+            this.type = type;
+        }
     }
 }
