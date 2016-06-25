@@ -64,7 +64,8 @@ public class TestRestConnector
         Assert.assertEquals(connector.project(), Project);
     }
 
-    @Test void buildEntityUrl() throws Exception
+    @Test
+    void buildEntityUrl() throws Exception
     {
         RestConnector connector = RestConnector.instance();
 

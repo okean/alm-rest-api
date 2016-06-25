@@ -6,6 +6,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.alm.model.Test;
 import org.apache.commons.lang.StringUtils;
 
 public final class Dao
@@ -24,7 +25,7 @@ public final class Dao
 
         try
         {
-            RestConnector.instance().get(isAuthenticatedUrl, Response.class, null, null);
+            connector().get(isAuthenticatedUrl, Response.class, null, null);
 
             return null;
         }
@@ -62,8 +63,7 @@ public final class Dao
      */
     public static void login(String authenticationPoint, String username, String password) throws Exception
     {
-        RestConnector.instance().get(
-                authenticationPoint, Response.class, RestConnector.createBasicAuthHeader(username, password), null);
+        connector().get(authenticationPoint, Response.class, RestConnector.createBasicAuthHeader(username, password), null);
     }
 
     /**
@@ -94,6 +94,30 @@ public final class Dao
     {
         String logoutUrl = "qcbin/authentication-point/logout";
 
-        RestConnector.instance().get(logoutUrl, Response.class, null, null);
+        connector().get(logoutUrl, Response.class, null, null);
+    }
+
+    /**
+     * Read the test entity with the specified ID
+     *
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    public static Test readTest(String id) throws Exception
+    {
+        String testUrl = connector().buildEntityUrl("test", id);
+
+        return connector().get(testUrl, Test.class, null, null);
+    }
+
+    /**
+     * Gets an instance of RestConnector
+     *
+     * @return
+     */
+    private static RestConnector connector()
+    {
+        return RestConnector.instance();
     }
 }

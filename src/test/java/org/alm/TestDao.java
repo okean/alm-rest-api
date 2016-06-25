@@ -12,6 +12,8 @@ import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -99,6 +101,25 @@ public class TestDao
         Assert.assertNotNull(Dao.isAuthenticated(), "Should return a url if not authenticated");
     }
 
+    @Test(groups = { "crud", "entity" })
+    public void readTestEntity() throws Exception
+    {
+        org.alm.model.Test expected = createTestEntity("2");
+
+        org.alm.model.Test actual = Dao.readTest("2");
+
+        Assert.assertEquals(actual.execStatus(), expected.execStatus());
+        Assert.assertEquals(actual.owner(), expected.owner());
+        Assert.assertEquals(actual.status(), expected.status());
+        Assert.assertEquals(actual.subtypeId(), expected.subtypeId());
+        Assert.assertEquals(actual.parentId(), expected.parentId());
+        Assert.assertEquals(actual.id(), expected.id());
+        Assert.assertEquals(actual.name(), expected.name());
+        Assert.assertEquals(actual.description(), expected.description());
+
+        // TODO
+    }
+
     private static String authenticationPoint(String host, String port)
     {
         return String.format("http://%s:%s/qcbin/authentication-point", host, port);
@@ -111,6 +132,22 @@ public class TestDao
         almProperties.load(in);
 
         return almProperties;
+    }
+
+    private static org.alm.model.Test createTestEntity(String id)
+    {
+        org.alm.model.Test test = new org.alm.model.Test();
+
+        test.execStatus("No Run");
+        test.owner("admin");
+        test.status("Design");
+        test.subtypeId("MANUAL");
+        test.parentId("100");
+        test.id(id);
+        test.name("CreatePITest");
+        test.description("Verify Participating Individuals are properly creted");
+
+        return test;
     }
 
     @Path("/qcbin")
@@ -164,6 +201,18 @@ public class TestDao
             String cookieStr = String.format("%s=deleted;Expires=Thu, 01-Jan-1970 00:00:01 GMT", cookie.getName());
 
             return Response.ok().header("Set-Cookie", cookieStr).build();
+        }
+
+        @GET
+        @Path("/rest/domains/{domain}/projects/{project}/tests/{id}")
+        @Produces("application/xml")
+        public org.alm.model.Test test(@PathParam("domain") String domain,
+                @PathParam("project") String project,
+                @PathParam("id") String id)
+        {
+            org.alm.model.Test test = createTestEntity(id);
+
+            return test;
         }
 
         private static Response unauthorizedResponse(UriInfo uriInfo)
