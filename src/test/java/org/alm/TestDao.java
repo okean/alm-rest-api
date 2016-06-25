@@ -22,6 +22,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.alm.model.Entity;
+import org.alm.model.Field;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -108,16 +110,59 @@ public class TestDao
 
         org.alm.model.Test actual = Dao.readTest("2");
 
-        Assert.assertEquals(actual.execStatus(), expected.execStatus());
-        Assert.assertEquals(actual.owner(), expected.owner());
-        Assert.assertEquals(actual.status(), expected.status());
-        Assert.assertEquals(actual.subtypeId(), expected.subtypeId());
-        Assert.assertEquals(actual.parentId(), expected.parentId());
-        Assert.assertEquals(actual.id(), expected.id());
-        Assert.assertEquals(actual.name(), expected.name());
-        Assert.assertEquals(actual.description(), expected.description());
+        assertEntitiesAreEquals(actual, expected);
+    }
 
-        // TODO
+    private static void assertEntitiesAreEquals(Entity lhs, Entity rhs)
+    {
+        if (lhs == rhs)
+        {
+            return;
+        }
+
+        if (lhs == null || rhs == null)
+        {
+            Assert.fail("Invalid entities");
+        }
+
+        Assert.assertEquals(
+                lhs.type(), rhs.type(), "Entities are not of the same type");
+
+        List<Field> lhsFields = lhs.fields();
+        List<Field> rhsFields = rhs.fields();
+
+        Assert.assertEquals(
+                lhsFields.size(), rhsFields.size(), "Entities fields are not of the same length");
+
+        List<String> errorMessages = new ArrayList<String>();
+
+        for (Field lhsField : lhsFields)
+        {
+            try
+            {
+                String lhsFieldName = lhsField.name();
+
+                Field rhsField = rhs.field(lhsFieldName);
+
+                Assert.assertNotNull(
+                        rhsField, String.format("Could not find '%s' field", lhsFieldName));
+
+                Assert.assertEquals(
+                        lhsField.value(),
+                        rhsField.value(),
+                        String.format("Actual and expected value of '%s' field does not match", lhsFieldName));
+            }
+            catch (AssertionError ex)
+            {
+                errorMessages.add(ex.getMessage());
+                errorMessages.add(System.getProperty("line.separator"));
+            }
+        }
+
+        if (!errorMessages.isEmpty())
+        {
+            Assert.fail(errorMessages.toString());
+        }
     }
 
     private static String authenticationPoint(String host, String port)
