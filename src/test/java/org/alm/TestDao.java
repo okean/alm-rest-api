@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.alm.model.TestInstance;
 import org.alm.model.TestSet;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -122,6 +123,16 @@ public class TestDao
         EntityAssert.assertEquals(actual, expected);
     }
 
+    @Test(groups = { "crud", "entity" })
+    public void readTestInstanceEntity() throws Exception
+    {
+        TestInstance expected = createTestInstanceEntity("2");
+
+        TestInstance actual = Dao.readTestInstance("2");
+
+        EntityAssert.assertEquals(actual, expected);
+    }
+
     private static String authenticationPoint(String host, String port)
     {
         return String.format("http://%s:%s/qcbin/authentication-point", host, port);
@@ -170,6 +181,19 @@ public class TestDao
         testSet.name("Mansfield Testing");
 
         return testSet;
+    }
+
+    private static TestInstance createTestInstanceEntity(String id)
+    {
+        TestInstance testInstance = new TestInstance();
+
+        testInstance.testSetId("12");
+        testInstance.testId("1");
+        testInstance.iterations("5");
+        testInstance.name("1");
+        testInstance.id(id);
+
+        return testInstance;
     }
 
     @Path("/qcbin")
@@ -247,6 +271,18 @@ public class TestDao
             TestSet testSet = createTestSetEntity(id);
 
             return testSet;
+        }
+
+        @GET
+        @Path("/rest/domains/{domain}/projects/{project}/test-instances/{id}")
+        @Produces("application/xml")
+        public TestInstance testInstance(@PathParam("domain") String domain,
+                @PathParam("project") String project,
+                @PathParam("id") String id)
+        {
+            TestInstance testInstance = createTestInstanceEntity(id);
+
+            return testInstance;
         }
 
         private static Response unauthorizedResponse(UriInfo uriInfo)
