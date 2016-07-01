@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.alm.model.TestSet;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -111,6 +112,16 @@ public class TestDao
         EntityAssert.assertEquals(actual, expected);
     }
 
+    @Test(groups = { "crud", "entity" })
+    public void readTestSetEntity() throws Exception
+    {
+        TestSet expected = createTestSetEntity("2");
+
+        TestSet actual = Dao.readTestSet("2");
+
+        EntityAssert.assertEquals(actual, expected);
+    }
+
     private static String authenticationPoint(String host, String port)
     {
         return String.format("http://%s:%s/qcbin/authentication-point", host, port);
@@ -139,6 +150,26 @@ public class TestDao
         test.description("Verify Participating Individuals are properly creted");
 
         return test;
+    }
+
+    private static TestSet createTestSetEntity(String id)
+    {
+        TestSet testSet = new TestSet();
+
+        testSet.status("Open");
+        testSet.subtypeId("101F3974-AD91-49d8-97EF-B3DEC6F0AEA3");
+        testSet.comment("<html>"
+                + "<body>"
+                + "<div align=\"left\"><font face=\"Arial\"><span style=\"font-size:8pt\">"
+                + "For running tests on Mansfield Park planning tests</span></font></div>"
+                + "</body>"
+                + "</html>");
+        testSet.linkage("N");
+        testSet.id(id);
+        testSet.parentId("1");
+        testSet.name("Mansfield Testing");
+
+        return testSet;
     }
 
     @Path("/qcbin")
@@ -204,6 +235,18 @@ public class TestDao
             org.alm.model.Test test = createTestEntity(id);
 
             return test;
+        }
+
+        @GET
+        @Path("/rest/domains/{domain}/projects/{project}/test-sets/{id}")
+        @Produces("application/xml")
+        public TestSet testSet(@PathParam("domain") String domain,
+                @PathParam("project") String project,
+                @PathParam("id") String id)
+        {
+            TestSet testSet = createTestSetEntity(id);
+
+            return testSet;
         }
 
         private static Response unauthorizedResponse(UriInfo uriInfo)

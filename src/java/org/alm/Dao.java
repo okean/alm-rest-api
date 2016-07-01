@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.alm.model.Test;
+import org.alm.model.TestSet;
 import org.apache.commons.lang.StringUtils;
 
 public final class Dao
@@ -109,6 +110,20 @@ public final class Dao
         String testUrl = connector().buildEntityUrl("test", id);
 
         return connector().get(testUrl, Test.class, null, null);
+    }
+
+    /**
+     * Read the test set entity with the specified ID
+     *
+     * @param id
+     * @return
+     * @throws Exception
+     */
+    public static TestSet readTestSet(String id) throws Exception
+    {
+        String testSetUrl = connector().buildEntityUrl("test-set", id);
+
+        return connector().get(testSetUrl, TestSet.class, null, null);
     }
 
     /**
