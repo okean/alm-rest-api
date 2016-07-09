@@ -1,5 +1,6 @@
 package org.alm;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -8,20 +9,24 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.alm.model.Attachment;
 import org.alm.model.TestInstance;
 import org.alm.model.TestSet;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -133,6 +138,34 @@ public class TestDao
         EntityAssert.assertEquals(actual, expected);
     }
 
+    @Test(groups = { "crud", "enity", "attachment" })
+    public void createRunAttachment() throws Exception
+    {
+        String fileName = "test.txt";
+        String fileContent = "content of test file";
+
+        Attachment attachment = Dao.createRunAttachment("3", fileName, fileContent.getBytes());
+
+        Assert.assertEquals(attachment.name(), fileName);
+        Assert.assertEquals(attachment.fileSize(), String.valueOf(fileContent.length()));
+        Assert.assertEquals(attachment.parentId(), "3");
+        Assert.assertEquals(attachment.parentType(), "runs");
+    }
+
+    @Test(groups = { "crud", "enity", "attachment" })
+    public void createRunStepAttachment() throws Exception
+    {
+        String fileName = "run-step.txt";
+        String fileContent = "content of run step file";
+
+        Attachment attachment = Dao.createRunStepAttachment("4", fileName, fileContent.getBytes());
+
+        Assert.assertEquals(attachment.name(), fileName);
+        Assert.assertEquals(attachment.fileSize(), String.valueOf(fileContent.length()));
+        Assert.assertEquals(attachment.parentId(), "4");
+        Assert.assertEquals(attachment.parentType(), "run-steps");
+    }
+
     private static String authenticationPoint(String host, String port)
     {
         return String.format("http://%s:%s/qcbin/authentication-point", host, port);
@@ -194,6 +227,18 @@ public class TestDao
         testInstance.id(id);
 
         return testInstance;
+    }
+
+    private static Attachment createAttachment(String name, String fileSize, String parentId, String parentType)
+    {
+        Attachment attachment = new Attachment();
+
+        attachment.name(name);
+        attachment.fileSize(fileSize);
+        attachment.parentId(parentId);
+        attachment.parentType(parentType);
+
+        return attachment;
     }
 
     @Path("/qcbin")
@@ -283,6 +328,22 @@ public class TestDao
             TestInstance testInstance = createTestInstanceEntity(id);
 
             return testInstance;
+        }
+
+        @POST
+        @Path("/rest/domains/{domain}/projects/{project}/{entityCollection}/{enityId}/attachments")
+        @Consumes("application/octet-stream")
+        @Produces("application/xml")
+        public Attachment createAttachments(
+                @HeaderParam("Slug") String fileName,
+                @PathParam("enityId") String enityId,
+                @PathParam("entityCollection") String entityCollection,
+                File file) throws Exception
+        {
+            Attachment attachment = createAttachment(
+                    fileName, String.valueOf(file.length()), enityId, entityCollection);
+
+            return attachment;
         }
 
         private static Response unauthorizedResponse(UriInfo uriInfo)

@@ -3,12 +3,12 @@ package org.alm;
 import java.net.URI;
 
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.alm.model.Test;
-import org.alm.model.TestInstance;
-import org.alm.model.TestSet;
+import org.alm.model.*;
 import org.apache.commons.lang.StringUtils;
 
 public final class Dao
@@ -142,6 +142,37 @@ public final class Dao
     }
 
     /**
+     * Create an attachment for run entity
+     *
+     * @param runId
+     * @param fileName to use on serverside
+     * @param fileData content of file
+     * @return the xml of the metadata on the created attachment
+     * @throws Exception
+     */
+    public static Attachment createRunAttachment(String runId, String fileName, byte[] fileData) throws Exception
+    {
+        String attachmentsUrl =  connector().buildEntityUrl("run", runId) + "/attachments";
+
+        return createAttachment(attachmentsUrl, fileName, fileData);
+    }
+
+    /**
+     * Create an attachment for run step entity
+     *
+     * @param runId
+     * @param fileName to use on serverside
+     * @param fileData content of file
+     * @return the xml of the metadata on the created attachment
+     * @throws Exception
+     */
+    public static Attachment createRunStepAttachment(String runStepId, String fileName, byte[] fileData) throws Exception
+    {
+        String attachmentsUrl =  connector().buildEntityUrl("run-step", runStepId) + "/attachments";
+
+        return createAttachment(attachmentsUrl, fileName, fileData);
+    }
+    /**
      * Gets an instance of RestConnector
      *
      * @return
@@ -149,5 +180,23 @@ public final class Dao
     private static RestConnector connector()
     {
         return RestConnector.instance();
+    }
+
+    /**
+     * Create attachment
+     *
+     * @param entityUrl url of entity to attach the file to
+     * @param fileName to use on serverside
+     * @param payload content of file
+     * @return the xml of the metadata on the created attachment
+     * @throws Exception
+     */
+    private static Attachment createAttachment(String entityUrl, String fileName, byte[] fileData) throws Exception
+    {
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<String, Object>();
+        headers.add("Accept", "application/xml");
+        headers.add("Slug", fileName);
+
+        return connector().post(entityUrl, Attachment.class, headers, null, fileData, "application/octet-stream");
     }
 }

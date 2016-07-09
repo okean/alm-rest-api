@@ -141,6 +141,19 @@ public class RestConnector
         return call(HttpMethod.POST, path, headers, queryParams, payload, entityType);
     }
 
+    public <T> T post(
+            String path,
+            Class<T> entityType,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
+            Object payload,
+            String contentType) throws Exception
+    {
+        Log.debug("POST: {}", path);
+
+        return call(HttpMethod.POST, path, headers, queryParams, payload, contentType, entityType);
+    }
+
     public <T> T put(
             String path,
             Class<T> entityType,
@@ -199,16 +212,28 @@ public class RestConnector
             Map<String, String> queryParams,
             Object payload,
             Class<T> entityType) throws Exception
-            {
-                Response res = call(methodName, path, headers, queryParams, payload);
+    {
+        return call(methodName, path, headers, queryParams, payload, MediaType.APPLICATION_XML, entityType);
+    }
 
-                if(!res.hasEntity())
-                {
-                    return null;
-                }
+    private <T> T call(
+            String methodName,
+            String path,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
+            Object payload,
+            String contentType,
+            Class<T> entityType) throws Exception
+    {
+        Response res = call(methodName, path, headers, queryParams, payload, contentType);
 
-                return (T) res.readEntity(entityType);
-            }
+        if(!res.hasEntity())
+        {
+            return null;
+        }
+
+        return (T) res.readEntity(entityType);
+    }
 
     private Response call(
             String methodName,
@@ -216,6 +241,17 @@ public class RestConnector
             MultivaluedMap<String, Object> headers,
             Map<String, String> queryParams,
             Object payload) throws Exception
+    {
+        return call(methodName, path, headers, queryParams, payload, MediaType.APPLICATION_XML);
+    }
+
+    private Response call(
+            String methodName,
+            String path,
+            MultivaluedMap<String, Object> headers,
+            Map<String, String> queryParams,
+            Object payload,
+            String contentType) throws Exception
     {
         WebTarget webTarget = createWebTarget(buildUrl(path), queryParams);
 
@@ -230,7 +266,7 @@ public class RestConnector
         }
 
         Response res = result.method(
-                methodName, Entity.entity(payload, MediaType.APPLICATION_XML), Response.class);
+                methodName, Entity.entity(payload, contentType), Response.class);
 
         int statusCode = res.getStatus();
 
