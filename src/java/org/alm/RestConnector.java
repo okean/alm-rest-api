@@ -26,6 +26,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.glassfish.jersey.uri.UriComponent;
 
 public class RestConnector
 {
@@ -191,7 +192,11 @@ public class RestConnector
             {
                 if (StringUtils.isNotBlank(entry.getKey()) && StringUtils.isNotBlank(entry.getValue()))
                 {
-                    webTarget = webTarget.queryParam(entry.getKey(), entry.getValue());
+                    String value = UriComponent.encode(
+                            entry.getValue(),
+                            UriComponent.Type.QUERY_PARAM_SPACE_ENCODED);
+
+                    webTarget = webTarget.queryParam(entry.getKey(), value);
                 }
             }
         }

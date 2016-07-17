@@ -17,16 +17,18 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.alm.model.Attachment;
+import org.alm.model.Entities;
+import org.alm.model.Entity;
 import org.alm.model.TestInstance;
 import org.alm.model.TestSet;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -136,6 +138,18 @@ public class TestDao
         TestInstance actual = Dao.readTestInstance("2");
 
         EntityAssert.assertEquals(actual, expected);
+    }
+
+    @Test(groups = { "crud", "entity" })
+    public void readTestInstanceEntities() throws Exception
+    {
+        TestInstance ti1 = createTestInstanceEntity("1");
+        TestInstance ti2 = createTestInstanceEntity("2");
+
+        List<TestInstance> actual = Dao.readTestInstances("2");
+
+        EntityAssert.assertEquals(actual.get(0), ti1);
+        EntityAssert.assertEquals(actual.get(1), ti2);
     }
 
     @Test(groups = { "crud", "enity", "attachment" })
@@ -328,6 +342,26 @@ public class TestDao
             TestInstance testInstance = createTestInstanceEntity(id);
 
             return testInstance;
+        }
+
+        @GET
+        @Path("/rest/domains/{domain}/projects/{project}/test-instances")
+        @Produces("application/xml")
+        public Entities testInstances(@PathParam("domain") String domain,
+                @PathParam("project") String project,
+                @QueryParam("orderBy") String query)
+        {
+            TestInstance ti1 = createTestInstanceEntity("1");
+            TestInstance ti2 = createTestInstanceEntity("2");
+
+            List<Entity> testInstances = new ArrayList<Entity>();
+            testInstances.add(ti1);
+            testInstances.add(ti2);
+
+            Entities entities = new Entities();
+            entities.list(testInstances);
+
+            return entities;
         }
 
         @POST

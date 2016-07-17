@@ -1,6 +1,10 @@
 package org.alm;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -142,6 +146,32 @@ public final class Dao
     }
 
     /**
+     * Read the test instance entities wuth the specified testSetId
+     *
+     * @param testSetId
+     * @return
+     * @throws Exception
+     */
+    public static List<TestInstance> readTestInstances(String testSetId) throws Exception
+    {
+        String testInstancesUrl = connector().buildEntityCollectionUrl("test-instance");
+
+        Map<String, String> criteria = new HashMap<String, String>();
+        criteria.put("query", "{cycle-id[" + testSetId + "]}");
+
+        Entities entities = connector().get(testInstancesUrl, Entities.class, null, criteria);
+
+        List<TestInstance> testInstances = new ArrayList<TestInstance>();
+
+        for(Entity entity: entities.list())
+        {
+            testInstances.add(new TestInstance(entity));
+        }
+
+        return testInstances;
+    }
+
+    /**
      * Create an attachment for run entity
      *
      * @param runId
@@ -160,7 +190,7 @@ public final class Dao
     /**
      * Create an attachment for run step entity
      *
-     * @param runId
+     * @param runStepId
      * @param fileName to use on serverside
      * @param fileData content of file
      * @return the xml of the metadata on the created attachment
@@ -194,7 +224,6 @@ public final class Dao
     private static Attachment createAttachment(String entityUrl, String fileName, byte[] fileData) throws Exception
     {
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<String, Object>();
-        headers.add("Accept", "application/xml");
         headers.add("Slug", fileName);
 
         return connector().post(entityUrl, Attachment.class, headers, null, fileData, "application/octet-stream");
