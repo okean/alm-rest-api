@@ -1,9 +1,7 @@
 package org.alm;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -152,23 +150,14 @@ public final class Dao
      * @return
      * @throws Exception
      */
-    public static List<TestInstance> readTestInstances(String testSetId) throws Exception
+    public static TestInstances readTestInstances(String testSetId) throws Exception
     {
         String testInstancesUrl = connector().buildEntityCollectionUrl("test-instance");
 
         Map<String, String> criteria = new HashMap<String, String>();
         criteria.put("query", "{cycle-id[" + testSetId + "]}");
 
-        Entities entities = connector().get(testInstancesUrl, Entities.class, null, criteria);
-
-        List<TestInstance> testInstances = new ArrayList<TestInstance>();
-
-        for(Entity entity: entities.list())
-        {
-            testInstances.add(new TestInstance(entity));
-        }
-
-        return testInstances;
+        return connector().get(testInstancesUrl, TestInstances.class, null, criteria);
     }
 
     /**

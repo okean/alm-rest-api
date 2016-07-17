@@ -26,11 +26,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.alm.model.Attachment;
-import org.alm.model.Entities;
-import org.alm.model.Entity;
-import org.alm.model.TestInstance;
-import org.alm.model.TestSet;
+import org.alm.model.*;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -146,10 +142,10 @@ public class TestDao
         TestInstance ti1 = createTestInstanceEntity("1");
         TestInstance ti2 = createTestInstanceEntity("2");
 
-        List<TestInstance> actual = Dao.readTestInstances("2");
+        TestInstances actual = Dao.readTestInstances("2");
 
-        EntityAssert.assertEquals(actual.get(0), ti1);
-        EntityAssert.assertEquals(actual.get(1), ti2);
+        EntityAssert.assertEquals(actual.entities().get(0), ti1);
+        EntityAssert.assertEquals(actual.entities().get(1), ti2);
     }
 
     @Test(groups = { "crud", "enity", "attachment" })
@@ -347,21 +343,18 @@ public class TestDao
         @GET
         @Path("/rest/domains/{domain}/projects/{project}/test-instances")
         @Produces("application/xml")
-        public Entities testInstances(@PathParam("domain") String domain,
+        public TestInstances testInstances(@PathParam("domain") String domain,
                 @PathParam("project") String project,
-                @QueryParam("orderBy") String query)
+                @QueryParam("query") String query)
         {
             TestInstance ti1 = createTestInstanceEntity("1");
             TestInstance ti2 = createTestInstanceEntity("2");
 
-            List<Entity> testInstances = new ArrayList<Entity>();
-            testInstances.add(ti1);
-            testInstances.add(ti2);
+            TestInstances testInstances = new TestInstances();
+            testInstances.addEntity(ti1);
+            testInstances.addEntity(ti2);
 
-            Entities entities = new Entities();
-            entities.list(testInstances);
-
-            return entities;
+            return testInstances;
         }
 
         @POST
