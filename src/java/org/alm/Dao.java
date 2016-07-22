@@ -191,6 +191,37 @@ public final class Dao
 
         return createAttachment(attachmentsUrl, fileName, fileData);
     }
+
+    /**
+     * Create run entity
+     *
+     * @param run
+     * @return
+     * @throws Exception
+     */
+    public static Run createRun(Run run) throws Exception
+    {
+        String runsUrl =  connector().buildEntityCollectionUrl("run");
+
+        return connector().post(runsUrl, Run.class, null, null, run);
+    }
+
+    /**
+     * Update run entity
+     *
+     * @param run
+     * @return
+     * @throws Exception
+     */
+    public static Run updateRun(Run run) throws Exception
+    {
+        String runUrl =  connector().buildEntityUrl("run", run.id());
+
+        run.clearBeforeUpdate();
+
+        return connector().put(runUrl, Run.class, null, null, run);
+    }
+
     /**
      * Gets an instance of RestConnector
      *

@@ -107,6 +107,15 @@ public class Entity
     }
 
     /**
+     * Remove ID field before an entity update
+     *
+     */
+    public void clearBeforeUpdate()
+    {
+        removeField("id");
+    }
+
+    /**
      * Gets the value of the field using the name the field to be retrieved.
      *
      * @param name

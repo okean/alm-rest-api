@@ -14,6 +14,7 @@ import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -176,6 +177,29 @@ public class TestDao
         Assert.assertEquals(attachment.parentType(), "run-steps");
     }
 
+    @Test(groups = { "crud", "enity", "run" })
+    public void createRunEntity() throws Exception
+    {
+        Run expected = createRun();
+
+        Run actual = Dao.createRun(expected);
+
+        EntityAssert.assertEquals(actual, expected);
+    }
+
+    @Test(groups = { "crud", "enity", "run" })
+    public void updateRunEntity() throws Exception
+    {
+        Run expected = createRun();
+        String id = expected.id();
+
+        Run actual = Dao.updateRun(expected);
+
+        expected.id(id);
+
+        EntityAssert.assertEquals(actual, expected);
+    }
+
     private static String authenticationPoint(String host, String port)
     {
         return String.format("http://%s:%s/qcbin/authentication-point", host, port);
@@ -249,6 +273,25 @@ public class TestDao
         attachment.parentType(parentType);
 
         return attachment;
+    }
+
+    private static Run createRun()
+    {
+        Run run = new Run();
+
+        run.id("2");
+        run.testInstanceId("42");
+        run.testSetId("7");
+        run.testId("133");
+        run.testConfigId("1133");
+        run.status(Run.STATUS_NOT_COMPLETED);
+        run.owner("keano");
+        run.testType(Run.TEST_TYPE_MANUAL);
+        run.host("KITE");
+        run.comments("Blocked by 181156");
+        run.duration("139");
+
+        return run;
     }
 
     @Path("/qcbin")
@@ -371,6 +414,26 @@ public class TestDao
                     fileName, String.valueOf(file.length()), enityId, entityCollection);
 
             return attachment;
+        }
+
+        @POST
+        @Path("/rest/domains/{domain}/projects/{project}/runs")
+        @Produces("application/xml")
+        public Run createRun(Run run)
+        {
+            return run;
+        }
+
+        @PUT
+        @Path("/rest/domains/{domain}/projects/{project}/runs/{id}")
+        @Produces("application/xml")
+        public Run updateRun(
+                @PathParam("id") String id,
+                Run run)
+        {
+            run.id(id);
+
+            return run;
         }
 
         private static Response unauthorizedResponse(UriInfo uriInfo)
