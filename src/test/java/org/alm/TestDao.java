@@ -177,25 +177,67 @@ public class TestDao
         Assert.assertEquals(attachment.parentType(), "run-steps");
     }
 
-    @Test(groups = { "crud", "enity", "run" })
-    public void createRunEntity() throws Exception
+    @Test(groups = { "crud", "enity" })
+    public void createRun() throws Exception
     {
-        Run expected = createRun();
+        Run expected = createRunEntity();
 
         Run actual = Dao.createRun(expected);
 
         EntityAssert.assertEquals(actual, expected);
     }
 
-    @Test(groups = { "crud", "enity", "run" })
+    @Test(groups = { "crud", "enity" })
     public void updateRunEntity() throws Exception
     {
-        Run expected = createRun();
+        Run expected = createRunEntity();
         String id = expected.id();
 
         Run actual = Dao.updateRun(expected);
 
         expected.id(id);
+
+        EntityAssert.assertEquals(actual, expected);
+    }
+
+    @Test(groups = { "crud", "entity" })
+    public void readTestStepsEntities() throws Exception
+    {
+        String runId = "122";
+
+        RunStep rs1 = createRunStepEntity(runId, "1");
+        RunStep rs2 = createRunStepEntity(runId, "2");
+
+        RunSteps actual = Dao.readRunSteps(runId);
+
+        EntityAssert.assertEquals(actual.entities().get(0), rs1);
+        EntityAssert.assertEquals(actual.entities().get(1), rs2);
+    }
+
+    @Test(groups = { "crud", "enity" })
+    public void createRunStep() throws Exception
+    {
+        String runId = "123";
+
+        RunStep expected = createRunStepEntity(runId, "3");
+
+        RunStep actual = Dao.createRunStep(expected);
+
+        EntityAssert.assertEquals(actual, expected);
+    }
+
+    @Test(groups = { "crud", "enity" })
+    public void updateRunStep() throws Exception
+    {
+        String runId = "123";
+        String runStepId = "3";
+
+        RunStep expected = createRunStepEntity(runId, runStepId);
+
+        RunStep actual = Dao.updateRunStep(expected);
+
+        expected.runId(runId);
+        expected.id(runStepId);
 
         EntityAssert.assertEquals(actual, expected);
     }
@@ -275,7 +317,7 @@ public class TestDao
         return attachment;
     }
 
-    private static Run createRun()
+    private static Run createRunEntity()
     {
         Run run = new Run();
 
@@ -292,6 +334,22 @@ public class TestDao
         run.duration("139");
 
         return run;
+    }
+
+    private static RunStep createRunStepEntity(String runId, String id)
+    {
+        RunStep runStep = new RunStep();
+
+        runStep.id(id);
+        runStep.runId(runId);
+        runStep.description("Navigat to HomePage");
+        runStep.status("Failed");
+        runStep.testId("136");
+        runStep.actual("Unauthenticated user");
+        runStep.expected("Welcome message should be displayed");
+        runStep.executionTime("12:24:11");
+
+        return runStep;
     }
 
     @Path("/qcbin")
@@ -434,6 +492,47 @@ public class TestDao
             run.id(id);
 
             return run;
+        }
+
+        @GET
+        @Path("/rest/domains/{domain}/projects/{project}/runs/{runId}/run-steps")
+        @Produces("application/xml")
+        public RunSteps testInstances(@PathParam("runId") String runId)
+        {
+            RunStep rs1 = createRunStepEntity(runId, "1");
+            RunStep rs2 = createRunStepEntity(runId, "2");;
+
+            RunSteps runSteps = new RunSteps();
+            runSteps.addEntity(rs1);
+            runSteps.addEntity(rs2);
+
+            return runSteps;
+        }
+
+        @POST
+        @Path("/rest/domains/{domain}/projects/{project}/runs/{runId}/run-steps")
+        @Produces("application/xml")
+        public RunStep createRunStep(
+                @PathParam("runId") String runId,
+                RunStep runStep)
+        {
+            runStep.runId(runId);
+
+            return runStep;
+        }
+
+        @PUT
+        @Path("/rest/domains/{domain}/projects/{project}/runs/{runId}/run-steps/{id}")
+        @Produces("application/xml")
+        public RunStep updateRunStep(
+                @PathParam("runId") String runId,
+                @PathParam("id") String id,
+                RunStep runStep)
+        {
+            runStep.runId(runId);
+            runStep.id(id);
+
+            return runStep;
         }
 
         private static Response unauthorizedResponse(UriInfo uriInfo)

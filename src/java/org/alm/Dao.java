@@ -223,6 +223,50 @@ public final class Dao
     }
 
     /**
+     * Read a collection of run-steps of the specified run
+     *
+     * @param runId
+     * @return
+     * @throws Exception
+     */
+    public static RunSteps readRunSteps(String runId) throws Exception
+    {
+        String runStepsUrl =  connector().buildEntityUrl("run", runId) + "/run-steps";
+
+        return connector().get(runStepsUrl, RunSteps.class, null, null);
+    }
+
+    /**
+     * Create a new run step
+     *
+     * @param runStep
+     * @return
+     * @throws Exception
+     */
+    public static RunStep createRunStep(RunStep runStep) throws Exception
+    {
+        String runStepsUrl = connector().buildEntityUrl("run", runStep.runId()) + "/run-steps";
+
+        return connector().post(runStepsUrl, RunStep.class, null, null, runStep);
+    }
+
+    /**
+     * Update a run step
+     *
+     * @param runStep
+     * @return
+     * @throws Exception
+     */
+    public static RunStep updateRunStep(RunStep runStep) throws Exception
+    {
+        String runStepUrl = connector().buildEntityUrl("run", runStep.runId()) + "/run-steps/" + runStep.id();
+
+        runStep.clearBeforeUpdate();
+
+        return connector().put(runStepUrl, RunStep.class, null, null, runStep);
+    }
+
+    /**
      * Gets an instance of RestConnector
      *
      * @return
