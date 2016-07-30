@@ -1,7 +1,6 @@
 package org.alm;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
 
@@ -20,8 +19,6 @@ import static org.alm.Util.*;
 
 public class TestDao
 {
-    private final boolean useStub;
-
     private final String host;
     private final String port;
     private final String domain;
@@ -38,27 +35,22 @@ public class TestDao
         domain = almProperty.getProperty("domain");
         project = almProperty.getProperty("project");
 
-        useStub = Boolean.parseBoolean(almProperty.getProperty("use-stub"));
-
         RestConnector.instance().init(host, port, domain, project);
     }
 
     @BeforeClass
     public void setUp() throws Exception
     {
-        if (useStub)
-        {
-            final ResourceConfig rc = new ResourceConfig(AlmApiStub.class);
+        final ResourceConfig rc = new ResourceConfig(AlmApiStub.class);
 
-            server = GrizzlyHttpServerFactory.createHttpServer(
-                    URI.create(String.format("http://%s:%s/", host, port)), rc);
-        }
+        server = GrizzlyHttpServerFactory.createHttpServer(
+                URI.create(String.format("http://%s:%s/", host, port)), rc);
     }
 
     @AfterClass
     public void tearDown() throws Exception
     {
-        if (useStub && server != null)
+        if (server != null)
         {
             server.shutdownNow();
         }
@@ -166,6 +158,8 @@ public class TestDao
 
         Run actual = Dao.createRun(expected);
 
+        expected.id(actual.id());
+
         EntityAssert.assertEquals(actual, expected);
     }
 
@@ -173,11 +167,10 @@ public class TestDao
     public void updateRunEntity() throws Exception
     {
         Run expected = createRunEntity();
-        String id = expected.id();
 
         Run actual = Dao.updateRun(expected);
 
-        expected.id(id);
+        expected.id(actual.id());
 
         EntityAssert.assertEquals(actual, expected);
     }
@@ -222,14 +215,5 @@ public class TestDao
         expected.id(runStepId);
 
         EntityAssert.assertEquals(actual, expected);
-    }
-
-    private static Properties readAlmProperties() throws IOException
-    {
-        Properties almProperties = new Properties();
-        InputStream in = TestDao.class.getResourceAsStream("/alm.properties");
-        almProperties.load(in);
-
-        return almProperties;
     }
 }

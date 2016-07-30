@@ -23,6 +23,11 @@ public class Client
                 config.host(), config.port(), config.domain(), config.project());
     }
 
+    /**
+     * Login to HP ALM platform using basic authentication.
+     *
+     * @throws Exception
+     */
     public void login() throws Exception
     {
         Log.info(String.format("Logging in as '%s' ...", config.username()));
@@ -32,11 +37,25 @@ public class Client
         Log.info(String.format("Successfully authenticated as '%s'", config.username()));
     }
 
+    /**
+     * Close session on server and clean session cookies on client.
+     *
+     * @throws Exception
+     */
     public void logout() throws Exception
     {
         Dao.logout();
+
+        Log.info("Successfully logout");
     }
 
+    /**
+     * Read test set entity.
+     *
+     * @param testSetId
+     * @return
+     * @throws Exception
+     */
     public TestSet loadTestSet(String testSetId) throws Exception
     {
         Log.info(String.format("Loading TestSet ... (test-set-id = %s)", testSetId));
@@ -48,6 +67,13 @@ public class Client
         return testSet;
     }
 
+    /**
+     * Read test instance entities
+     *
+     * @param testSet
+     * @return
+     * @throws Exception
+     */
     public TestInstances loadTestInstances(TestSet testSet) throws Exception
     {
         Log.info(String.format("Loading TestInstances ... (test-set-id = %s)", testSet.id()));
@@ -59,6 +85,13 @@ public class Client
         return testInstances;
     }
 
+    /**
+     * Read test entity.
+     *
+     * @param testInstance
+     * @return
+     * @throws Exception
+     */
     public Test loadTest(TestInstance testInstance) throws Exception
     {
         Log.info(String.format("Loading Test ... (test-id = %s)", testInstance.testId()));
@@ -70,6 +103,14 @@ public class Client
         return test;
     }
 
+    /**
+     * Create run entity.
+     *
+     * @param testInstance
+     * @param test
+     * @return
+     * @throws Exception
+     */
     public Run createRun(TestInstance testInstance, Test test) throws Exception
     {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -95,20 +136,31 @@ public class Client
         return run;
     }
 
+    /**
+     * Create run step entities.
+     *
+     * @param run
+     * @param runSteps
+     * @throws Exception
+     */
     public void createRunSteps(Run run, RunSteps runSteps) throws Exception
     {
         Log.info("Creating RunSteps ...");
 
-        for(RunStep runStep : runSteps.entities())
+        for (RunStep runStep : runSteps.entities())
         {
-            runStep.runId(run.id());
+            RunStep prepRunStep = new RunStep();
 
-            Log.info(String.format("Creating RunStep ... ('%s', %s)", runStep.name(), runStep.status()));
+            prepRunStep.runId(run.id());
+            prepRunStep.name(runStep.name());
+            prepRunStep.status(runStep.status());
 
-            Dao.createRunStep(runStep);
+            Log.info(String.format("Creating RunStep ... ('%s', %s)", prepRunStep.name(), prepRunStep.status()));
+
+            Dao.createRunStep(prepRunStep);
 
             Log.info(String.format("RunStep has been created (run-step-id = %s, '%s', %s)",
-                    runStep.id(), runStep.name(),runStep.status()));
+                    prepRunStep.id(), prepRunStep.name(),prepRunStep.status()));
         }
     }
 

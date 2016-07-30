@@ -1,7 +1,10 @@
 package org.alm;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import org.alm.model.*;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -73,7 +76,6 @@ public class Util
     {
         Run run = new Run();
 
-        run.id("2");
         run.testInstanceId("42");
         run.testSetId("7");
         run.testId("133");
@@ -94,6 +96,7 @@ public class Util
 
         runStep.id(id);
         runStep.runId(runId);
+        runStep.name("Login#HomePage");
         runStep.description("Navigat to HomePage");
         runStep.status("Failed");
         runStep.testId("136");
@@ -102,6 +105,16 @@ public class Util
         runStep.executionTime("12:24:11");
 
         return runStep;
+    }
+
+    public static RunSteps createRunStepEntities()
+    {
+        RunSteps runSteps = new RunSteps();
+
+        runSteps.addEntity(createRunStepEntity("", "1"));
+        runSteps.addEntity(createRunStepEntity("", "2"));
+
+        return runSteps;
     }
 
     public static String wrapToHtml(String line)
@@ -124,5 +137,14 @@ public class Util
         sb.append("</body></html>");
 
         return sb.toString();
+    }
+
+    public static Properties readAlmProperties() throws IOException
+    {
+        Properties almProperties = new Properties();
+        InputStream in = TestDao.class.getResourceAsStream("/alm.properties");
+        almProperties.load(in);
+
+        return almProperties;
     }
 }

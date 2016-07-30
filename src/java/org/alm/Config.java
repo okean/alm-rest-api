@@ -19,14 +19,19 @@ public class Config
 {
     private Properties properties;
 
-    public Config(String content) throws Exception
+    public Config(Properties properties) throws Exception
     {
-        properties = createPropertyFile(content);
+        this.properties = properties;
 
         if (!check())
         {
             throw new Exception("Invalid ALM config.");
         }
+    }
+
+    public Config(String content) throws Exception
+    {
+        this(createPropertyFile(content));
     }
 
     public String host()

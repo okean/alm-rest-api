@@ -166,6 +166,8 @@ public class AlmApiStub
     @Produces("application/xml")
     public Run createRun(Run run)
     {
+        run.id("1");
+
         return run;
     }
 

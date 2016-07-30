@@ -6,14 +6,17 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "Entities")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Entities<T extends Entity>
 {
-    @XmlElement(name = "Entity")
+    @XmlElementRefs({
+      @XmlElementRef(name="Entity", type=TestInstance.class),
+      @XmlElementRef(name="Entity", type=RunStep.class)})
     private List<T> entities;
 
     public Entities()
