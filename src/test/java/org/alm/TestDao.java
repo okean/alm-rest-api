@@ -1,40 +1,22 @@
 package org.alm;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import org.alm.model.*;
+
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.alm.Util.*;
 
 public class TestDao
 {
@@ -66,7 +48,7 @@ public class TestDao
     {
         if (useStub)
         {
-            final ResourceConfig rc = new ResourceConfig(RestApiStub.class);
+            final ResourceConfig rc = new ResourceConfig(AlmApiStub.class);
 
             server = GrizzlyHttpServerFactory.createHttpServer(
                     URI.create(String.format("http://%s:%s/", host, port)), rc);
@@ -87,7 +69,7 @@ public class TestDao
     {
         Assert.assertEquals(
                 Dao.isAuthenticated(),
-                authenticationPoint(host, port) + "/authenticate",
+                AlmApiStub.authenticationPoint(host, port) + "/authenticate",
                 "Server should refuses request and returns a reference to authentication point");
     }
 
@@ -242,11 +224,6 @@ public class TestDao
         EntityAssert.assertEquals(actual, expected);
     }
 
-    private static String authenticationPoint(String host, String port)
-    {
-        return String.format("http://%s:%s/qcbin/authentication-point", host, port);
-    }
-
     private static Properties readAlmProperties() throws IOException
     {
         Properties almProperties = new Properties();
@@ -254,322 +231,5 @@ public class TestDao
         almProperties.load(in);
 
         return almProperties;
-    }
-
-    private static org.alm.model.Test createTestEntity(String id)
-    {
-        org.alm.model.Test test = new org.alm.model.Test();
-
-        test.execStatus("No Run");
-        test.owner("admin");
-        test.status("Design");
-        test.subtypeId("MANUAL");
-        test.parentId("100");
-        test.id(id);
-        test.name("CreatePITest");
-        test.description("Verify Participating Individuals are properly creted");
-
-        return test;
-    }
-
-    private static TestSet createTestSetEntity(String id)
-    {
-        TestSet testSet = new TestSet();
-
-        testSet.status("Open");
-        testSet.subtypeId("101F3974-AD91-49d8-97EF-B3DEC6F0AEA3");
-        testSet.comment("<html>"
-                + "<body>"
-                + "<div align=\"left\"><font face=\"Arial\"><span style=\"font-size:8pt\">"
-                + "For running tests on Mansfield Park planning tests</span></font></div>"
-                + "</body>"
-                + "</html>");
-        testSet.linkage("N");
-        testSet.id(id);
-        testSet.parentId("1");
-        testSet.name("Mansfield Testing");
-
-        return testSet;
-    }
-
-    private static TestInstance createTestInstanceEntity(String id)
-    {
-        TestInstance testInstance = new TestInstance();
-
-        testInstance.testSetId("12");
-        testInstance.testId("1");
-        testInstance.iterations("5");
-        testInstance.name("1");
-        testInstance.id(id);
-
-        return testInstance;
-    }
-
-    private static Attachment createAttachment(String name, String fileSize, String parentId, String parentType)
-    {
-        Attachment attachment = new Attachment();
-
-        attachment.name(name);
-        attachment.fileSize(fileSize);
-        attachment.parentId(parentId);
-        attachment.parentType(parentType);
-
-        return attachment;
-    }
-
-    private static Run createRunEntity()
-    {
-        Run run = new Run();
-
-        run.id("2");
-        run.testInstanceId("42");
-        run.testSetId("7");
-        run.testId("133");
-        run.testConfigId("1133");
-        run.status(Run.STATUS_NOT_COMPLETED);
-        run.owner("keano");
-        run.testType(Run.TEST_TYPE_MANUAL);
-        run.host("KITE");
-        run.comments("Blocked by 181156");
-        run.duration("139");
-
-        return run;
-    }
-
-    private static RunStep createRunStepEntity(String runId, String id)
-    {
-        RunStep runStep = new RunStep();
-
-        runStep.id(id);
-        runStep.runId(runId);
-        runStep.description("Navigat to HomePage");
-        runStep.status("Failed");
-        runStep.testId("136");
-        runStep.actual("Unauthenticated user");
-        runStep.expected("Welcome message should be displayed");
-        runStep.executionTime("12:24:11");
-
-        return runStep;
-    }
-
-    @Path("/qcbin")
-    public static class RestApiStub
-    {
-        private static List<String> cookies = new ArrayList<String>();
-
-        @GET
-        @Path("/rest/is-authenticated")
-        public Response isAuthenticated(
-                @CookieParam("LWSSO_COOKIE_KEY") Cookie cookie,
-                @Context UriInfo uriInfo)
-        {
-            if (cookie != null && cookieExists(cookie))
-            {
-                return Response.ok().build();
-            }
-            else
-            {
-                return unauthorizedResponse(uriInfo);
-            }
-        }
-
-        @GET
-        @Path("/authentication-point/authenticate")
-        public Response login(
-                @HeaderParam(HttpHeaders.AUTHORIZATION) String authorization,
-                @Context UriInfo uriInfo)
-        {
-            if (authorization.contains("Basic"))
-            {
-                NewCookie cookie = new NewCookie("LWSSO_COOKIE_KEY", UUID.randomUUID().toString());
-
-                updateCookieHolder(cookie);
-
-                return Response.ok().cookie(cookie).build();
-            }
-            else
-            {
-                return unauthorizedResponse(uriInfo);
-            }
-        }
-
-        @GET
-        @Path("/authentication-point/logout")
-        public Response logout(@CookieParam("LWSSO_COOKIE_KEY") Cookie cookie)
-        {
-            removeCookie(cookie);
-
-            // The server removes the LWSSOtoken from the client's active cookies.
-            String cookieStr = String.format("%s=deleted;Expires=Thu, 01-Jan-1970 00:00:01 GMT", cookie.getName());
-
-            return Response.ok().header("Set-Cookie", cookieStr).build();
-        }
-
-        @GET
-        @Path("/rest/domains/{domain}/projects/{project}/tests/{id}")
-        @Produces("application/xml")
-        public org.alm.model.Test test(@PathParam("domain") String domain,
-                @PathParam("project") String project,
-                @PathParam("id") String id)
-        {
-            org.alm.model.Test test = createTestEntity(id);
-
-            return test;
-        }
-
-        @GET
-        @Path("/rest/domains/{domain}/projects/{project}/test-sets/{id}")
-        @Produces("application/xml")
-        public TestSet testSet(@PathParam("domain") String domain,
-                @PathParam("project") String project,
-                @PathParam("id") String id)
-        {
-            TestSet testSet = createTestSetEntity(id);
-
-            return testSet;
-        }
-
-        @GET
-        @Path("/rest/domains/{domain}/projects/{project}/test-instances/{id}")
-        @Produces("application/xml")
-        public TestInstance testInstance(@PathParam("domain") String domain,
-                @PathParam("project") String project,
-                @PathParam("id") String id)
-        {
-            TestInstance testInstance = createTestInstanceEntity(id);
-
-            return testInstance;
-        }
-
-        @GET
-        @Path("/rest/domains/{domain}/projects/{project}/test-instances")
-        @Produces("application/xml")
-        public TestInstances testInstances(@PathParam("domain") String domain,
-                @PathParam("project") String project,
-                @QueryParam("query") String query)
-        {
-            TestInstance ti1 = createTestInstanceEntity("1");
-            TestInstance ti2 = createTestInstanceEntity("2");
-
-            TestInstances testInstances = new TestInstances();
-            testInstances.addEntity(ti1);
-            testInstances.addEntity(ti2);
-
-            return testInstances;
-        }
-
-        @POST
-        @Path("/rest/domains/{domain}/projects/{project}/{entityCollection}/{enityId}/attachments")
-        @Consumes("application/octet-stream")
-        @Produces("application/xml")
-        public Attachment createAttachments(
-                @HeaderParam("Slug") String fileName,
-                @PathParam("enityId") String enityId,
-                @PathParam("entityCollection") String entityCollection,
-                File file) throws Exception
-        {
-            Attachment attachment = createAttachment(
-                    fileName, String.valueOf(file.length()), enityId, entityCollection);
-
-            return attachment;
-        }
-
-        @POST
-        @Path("/rest/domains/{domain}/projects/{project}/runs")
-        @Produces("application/xml")
-        public Run createRun(Run run)
-        {
-            return run;
-        }
-
-        @PUT
-        @Path("/rest/domains/{domain}/projects/{project}/runs/{id}")
-        @Produces("application/xml")
-        public Run updateRun(
-                @PathParam("id") String id,
-                Run run)
-        {
-            run.id(id);
-
-            return run;
-        }
-
-        @GET
-        @Path("/rest/domains/{domain}/projects/{project}/runs/{runId}/run-steps")
-        @Produces("application/xml")
-        public RunSteps testInstances(@PathParam("runId") String runId)
-        {
-            RunStep rs1 = createRunStepEntity(runId, "1");
-            RunStep rs2 = createRunStepEntity(runId, "2");;
-
-            RunSteps runSteps = new RunSteps();
-            runSteps.addEntity(rs1);
-            runSteps.addEntity(rs2);
-
-            return runSteps;
-        }
-
-        @POST
-        @Path("/rest/domains/{domain}/projects/{project}/runs/{runId}/run-steps")
-        @Produces("application/xml")
-        public RunStep createRunStep(
-                @PathParam("runId") String runId,
-                RunStep runStep)
-        {
-            runStep.runId(runId);
-
-            return runStep;
-        }
-
-        @PUT
-        @Path("/rest/domains/{domain}/projects/{project}/runs/{runId}/run-steps/{id}")
-        @Produces("application/xml")
-        public RunStep updateRunStep(
-                @PathParam("runId") String runId,
-                @PathParam("id") String id,
-                RunStep runStep)
-        {
-            runStep.runId(runId);
-            runStep.id(id);
-
-            return runStep;
-        }
-
-        private static Response unauthorizedResponse(UriInfo uriInfo)
-        {
-            URI baseUri = uriInfo.getBaseUri();
-
-            String authenticateHeader = String.format(
-                    "LWSSO realm=%s", authenticationPoint(baseUri.getHost(), String.valueOf(baseUri.getPort())));
-
-            return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", authenticateHeader).build();
-        }
-
-        private void updateCookieHolder(NewCookie cookie)
-        {
-            synchronized(this)
-            {
-                cookies.add(cookie.getValue());
-            }
-        }
-
-        private void removeCookie(Cookie cookie)
-        {
-            synchronized(this)
-            {
-                if (cookies.contains(cookie.getValue()))
-                {
-                    cookies.remove(cookie.getValue());
-                }
-            }
-        }
-
-        private boolean cookieExists(Cookie cookie)
-        {
-            synchronized(this)
-            {
-                return cookies.contains(cookie.getValue());
-            }
-        }
     }
 }
