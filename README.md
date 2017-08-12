@@ -15,7 +15,7 @@ mvn clean install
 ### Examples
 Here is a simple example that login, returns a test entity and logout from ALM server.
 ```java
-String almProperties = "host=yourhost.com\nport=8080\ndomain=yourdomain\nproject=yourproject\nusername=yourlogin\npassword=yourpassword""
+String almProperties = "host=yourhost.com\nport=8080\ndomain=yourdomain\nproject=yourproject\nusername=yourlogin\npassword=yourpassword"
 
 Client client = new Client(new Config(almProperties));
 
